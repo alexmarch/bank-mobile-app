@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "211491748418",
+    "project_id": "bankdash-2e112",
+    "storage_bucket": "bankdash-2e112.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:211491748418:android:72603736b839221727cbdb",
+        "android_client_info": {
+          "package_name": "com.bankdash.customer"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB9gqcfawZcznplhEzwc93Gglhbl4ryp6g"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

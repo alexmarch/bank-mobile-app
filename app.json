@@ -1,0 +1,76 @@
+{
+  "expo": {
+    "name": "BankDash",
+    "slug": "customer-mobile",
+    "scheme": "bankdash",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "automatic",
+    "ios": {
+      "bundleIdentifier": "com.bankdash.customer",
+      "supportsTablet": false,
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
+    },
+    "android": {
+      "package": "com.bankdash.customer",
+      "adaptiveIcon": {
+        "backgroundColor": "#2D60FF",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": false,
+      "permissions": [
+        "android.permission.RECORD_AUDIO",
+        "android.permission.MODIFY_AUDIO_SETTINGS",
+        "android.permission.FOREGROUND_SERVICE",
+        "android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK"
+      ]
+    },
+    "web": {
+      "bundler": "metro",
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      "expo-secure-store",
+      [
+        "expo-local-authentication",
+        {
+          "faceIDPermission": "Allow BankDash to use Face ID to securely sign you in."
+        }
+      ],
+      "expo-localization",
+      "expo-router",
+      "@react-native-vector-icons/ionicons",
+      "expo-font",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/splash-icon.png",
+          "imageWidth": 96,
+          "resizeMode": "contain",
+          "backgroundColor": "#F6F5F2"
+        }
+      ],
+      "expo-sharing",
+      "expo-audio",
+      "expo-notifications",
+      ["@config-plugins/react-native-webrtc", { "microphonePermission": "Allow $(PRODUCT_NAME) to use the microphone for support calls", "cameraPermission": "Allow $(PRODUCT_NAME) to access your camera" }],
+      ["expo-build-properties", { "android": { "buildArchs": ["arm64-v8a"], "enableMinifyInReleaseBuilds": true, "enableShrinkResourcesInReleaseBuilds": true, "extraProguardRules": "-keep class org.webrtc.** { *; }\n-dontwarn org.webrtc.**\n-keep class com.oney.WebRTCModule.** { *; }\n-dontwarn com.oney.WebRTCModule.**\n-keep class com.zxcpoiu.incallmanager.** { *; }" } }]
+    ],
+    "extra": {
+      "router": {
+        "asyncRoutes": {
+          "web": true
+        }
+      },
+      "eas": {
+        "projectId": "aa738c0f-4582-4ddc-ab9b-df431ece17c7"
+      }
+    },
+    "owner": "alexmarch"
+  }
+}
