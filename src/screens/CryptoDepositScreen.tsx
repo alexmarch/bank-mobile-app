@@ -8,14 +8,15 @@ import QRCode from 'react-native-qrcode-svg';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { api } from '../api/client';
 import { useApi } from '../api/useApi';
-import { PrimaryButton, TextField } from '../components/fields';
+import { MoneyField, PrimaryButton, TextField } from '../components/fields';
 import Screen from '../components/Screen';
+import { parseMoneyToMinorUnits } from '../money';
 import { usePreferences } from '../preferences/PreferencesProvider';
 
 const STATUS_COLORS: Record<string, string> = { pending: '#d97706', approved: '#16a34a', completed: '#16a34a', rejected: '#dc2626', expired: '#718ebf' };
 
-function formatUsd(minor: number) {
-  return `$${(Number(minor) / 100).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+function formatUsd(minor: number, locale: string) {
+  return new Intl.NumberFormat(locale, { style: 'currency', currency: 'USD' }).format(Number(minor) / 100);
 }
 
 function timestampMillis(value: any) {
@@ -34,7 +35,7 @@ function useRemaining(expiresAt: any) {
 }
 
 function CopyAddress({ value }: { value: string }) {
-  const { t } = usePreferences();
+  const { locale, t } = usePreferences();
   const [copied, setCopied] = useState(false);
   const copy = async () => {
     await Clipboard.setStringAsync(value);
@@ -53,7 +54,7 @@ function CopyAddress({ value }: { value: string }) {
 }
 
 function PaymentRequest({ request, onClose }: { request: any; onClose: () => void }) {
-  const { t } = usePreferences();
+  const { locale, t } = usePreferences();
   const remaining = useRemaining(request.expiresAt);
   const expired = remaining === '00:00';
 
@@ -73,7 +74,7 @@ function PaymentRequest({ request, onClose }: { request: any; onClose: () => voi
             </View>
           )}
           <Text size="sm" muted>{t('Amount')}</Text>
-          <Text size="2xl" weight="bold">{formatUsd(request.amountUsdMinor)}</Text>
+          <Text size="2xl" weight="bold">{formatUsd(request.amountUsdMinor, locale)}</Text>
           <Text size="sm" muted>{`${request.asset} · ${request.network}`}</Text>
           <View className="self-stretch gap-1">
             <Text size="xs" muted>{t('Wallet address')}</Text>
@@ -92,7 +93,7 @@ function PaymentRequest({ request, onClose }: { request: any; onClose: () => voi
 }
 
 export default function CryptoDepositScreen() {
-  const { t } = usePreferences();
+  const { locale, t } = usePreferences();
   const { top } = useSafeAreaInsets();
   const addresses = useApi<any[]>('/me/crypto-deposits/addresses');
   const requests = useApi<any[]>('/me/crypto-deposits/requests');
@@ -106,7 +107,8 @@ export default function CryptoDepositScreen() {
   const selected = useMemo(() => wallets.find((wallet) => String(wallet.id) === walletId) ?? wallets[0], [walletId, wallets]);
 
   const submit = async () => {
-    if (!/^\d+(\.\d{1,2})?$/.test(amount) || Number(amount) <= 0) {
+    const amountUsdMinor = parseMoneyToMinorUnits(amount, locale);
+    if (amountUsdMinor == null || amountUsdMinor <= 0) {
       setError(t('Enter a valid amount in USD with up to two decimal places.'));
       return;
     }
@@ -119,7 +121,7 @@ export default function CryptoDepositScreen() {
     try {
       const request = await api.post('/me/crypto-deposits/requests', {
         addressId: selected.id,
-        amountUsdMinor: Math.round(Number(amount) * 100),
+        amountUsdMinor,
         notes: notes.trim(),
       });
       setPayment(request);
@@ -193,7 +195,7 @@ export default function CryptoDepositScreen() {
               </View>
               <View className="gap-2">
                 <Label>{t('Amount in USD')}</Label>
-                <TextField inputMode="decimal" keyboardType="decimal-pad" onChangeText={setAmount} placeholder="0.00" value={amount} />
+                <MoneyField inputMode="decimal" keyboardType="decimal-pad" onChangeText={setAmount} placeholder="0.00" value={amount} />
               </View>
               <View className="gap-2">
                 <Label>{t('Notes')}</Label>
@@ -213,7 +215,7 @@ export default function CryptoDepositScreen() {
               <View className="gap-1" key={request.id}>
                 <View className="flex-row items-center justify-between gap-3">
                   <View className="flex-1">
-                    <Text weight="semibold">{formatUsd(request.amountUsdMinor)}</Text>
+                    <Text weight="semibold">{formatUsd(request.amountUsdMinor, locale)}</Text>
                     <Text size="xs" muted>{`${request.asset} · ${request.network} · ${new Date(timestampMillis(request.createdAt)).toLocaleString()}`}</Text>
                   </View>
                   <Text size="sm" style={{ color: STATUS_COLORS[request.status] ?? '#718ebf' }} weight="semibold">{t(request.status)}</Text>

@@ -1,9 +1,11 @@
+import { i18n } from './localization/i18n';
+
 export function formatMoney(minor = 0, currency: string | null = 'USD') {
   const value = Number(minor ?? 0) / 100;
   try {
-    return new Intl.NumberFormat('en-US', { style: 'currency', currency: currency || 'USD' }).format(value);
+    return new Intl.NumberFormat(i18n.locale, { style: 'currency', currency: currency || 'USD' }).format(value);
   } catch {
-    return `${value.toFixed(2)} ${currency ?? ''}`.trim();
+    return `${value.toLocaleString(i18n.locale, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${currency ?? ''}`.trim();
   }
 }
 

@@ -7,15 +7,15 @@ import { api } from '../api/client';
 import { useApi } from '../api/useApi';
 import { useBrand } from '../brand/BrandProvider';
 import { Empty } from '../components/banking';
-import { PrimaryButton, SecondaryButton, TextField } from '../components/fields';
+import { MoneyField, PrimaryButton, SecondaryButton, TextField } from '../components/fields';
 import Screen from '../components/Screen';
 import { euCountriesData, swiftCountriesData } from '../data/banks';
 import { formatMoney } from '../format';
+import { formatMinorUnitsForApi, parseMoneyToMinorUnits } from '../money';
 import { usePreferences } from '../preferences/PreferencesProvider';
 
 export type TransferType = 'internal' | 'swift' | 'sepa';
 
-const amountPattern = /^\d{1,9}([.,]\d{1,2})?$/;
 const bicPattern = /^[A-Z]{4}[A-Z]{2}[A-Z0-9]{2}([A-Z0-9]{3})?$/i;
 const sepaCountryCodes = new Set([
   'AD', 'AT', 'BE', 'BG', 'CH', 'CY', 'CZ', 'DE', 'DK', 'EE', 'ES', 'FI', 'FR', 'GB',
@@ -34,12 +34,6 @@ const icons = {
   swift: 'logo-euro',
   sepa: 'business-outline',
 } as const;
-
-function amountMinor(value: string) {
-  if (!amountPattern.test(value.trim())) return 0;
-  const [whole, fraction = ''] = value.trim().replace(',', '.').split('.');
-  return Number(whole) * 100 + Number(fraction.padEnd(2, '0'));
-}
 
 function validIban(value: string) {
   const iban = value.replace(/\s+/g, '').toUpperCase();
@@ -62,7 +56,7 @@ function Row({ label, value }: { label: string; value: string }) {
 }
 
 export default function TransferFormScreen({ type }: { type: TransferType }) {
-  const { t } = usePreferences();
+  const { locale, t } = usePreferences();
   const router = useRouter();
   const headerHeight = useSafeAreaInsets().top + 44;
   const { requireKyc } = useBrand();
@@ -104,7 +98,7 @@ export default function TransferFormScreen({ type }: { type: TransferType }) {
   const otherMode = recipientChoice === OTHER || (type === 'internal' && !ownRecipients.length);
   const ownRecipient = ownRecipients.find((item) => String(item.id) === recipientChoice) ?? ownRecipients[0];
   const selectedCountry = countries.find((item) => item.code === country);
-  const amountValue = amountMinor(amount);
+  const amountValue = parseMoneyToMinorUnits(amount, locale) ?? 0;
   const restriction = source?.operationRestriction;
   const restrictionOperation = type === 'internal' ? 'transfers' : type;
   const restricted = Boolean(
@@ -116,7 +110,10 @@ export default function TransferFormScreen({ type }: { type: TransferType }) {
   const beneficiaryName = type === 'swift'
     ? `${firstName.trim()} ${lastName.trim()}`.trim()
     : type === 'internal' && !otherMode ? ownRecipient?.name ?? '' : recipient.trim();
-  const amountValid = amountValue > 0 && Boolean(source) && amountValue <= Number(source?.balanceMinor ?? 0);
+  const amountValid = amountValue > 0
+    && amountValue <= 99_999_999_999
+    && Boolean(source)
+    && amountValue <= Number(source?.balanceMinor ?? 0);
   const accountValid = type === 'internal'
     ? (otherMode ? compact(account).length >= 6 : Boolean(ownRecipient))
     : type === 'sepa'
@@ -147,7 +144,7 @@ export default function TransferFormScreen({ type }: { type: TransferType }) {
         ? await api.post('/me/transfers', {
           sourceAccountId: source.id,
           recipient: otherMode ? account : ownRecipient?.accountNumber,
-          amount: amount.trim(),
+          amount: formatMinorUnitsForApi(amountValue),
           note: purpose.trim() || null,
         })
         : await api.post('/me/transfers/external', {
@@ -158,7 +155,7 @@ export default function TransferFormScreen({ type }: { type: TransferType }) {
           beneficiaryName,
           account,
           bicSwift: type === 'swift' ? bicSwift : null,
-          amount: amount.trim(),
+          amount: formatMinorUnitsForApi(amountValue),
           purpose: purpose.trim(),
         });
       setResult(data);
@@ -295,7 +292,7 @@ export default function TransferFormScreen({ type }: { type: TransferType }) {
             </>
           ) : null}
 
-          <TextField
+          <MoneyField
             inputMode="decimal"
             keyboardType="decimal-pad"
             label={`${t('Amount')} (${source.currency})`}

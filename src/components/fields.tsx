@@ -1,12 +1,35 @@
 import { useState, type ComponentProps } from 'react';
 import { View } from 'react-native';
 import { Button, EyeIcon, Input, InputGroup, Label, Text } from 'panelui-native';
+import { formatMoneyInput, parseMoneyToMinorUnits } from '../money';
 import { usePreferences } from '../preferences/PreferencesProvider';
 
 type InputProps = ComponentProps<typeof Input>;
 
 export function TextField(props: InputProps) {
   return <Input autoCorrect={false} {...props} />;
+}
+
+type MoneyFieldProps = Omit<ComponentProps<typeof TextField>, 'onChangeText' | 'value'> & {
+  onChangeText: (value: string) => void;
+  value: string;
+};
+
+export function MoneyField({ onBlur, onChangeText, value, ...props }: MoneyFieldProps) {
+  const { locale } = usePreferences();
+
+  return (
+    <TextField
+      {...props}
+      onBlur={(event) => {
+        onBlur?.(event);
+        const minorUnits = parseMoneyToMinorUnits(value, locale);
+        if (minorUnits != null) onChangeText(formatMoneyInput(minorUnits, locale));
+      }}
+      onChangeText={onChangeText}
+      value={value}
+    />
+  );
 }
 
 type PasswordFieldProps = Omit<ComponentProps<typeof InputGroup.Input>, 'secureTextEntry'> & {
