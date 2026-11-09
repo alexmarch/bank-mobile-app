@@ -191,6 +191,10 @@ export function TransactionRow({ item, last, onDownload, downloading }: {
   const amount = Math.abs(Number(item.amountMinor ?? 0));
   const color = credit ? '#16dbaa' : '#ff4b4a';
   const reportAvailable = String(item.category).startsWith('transfer_') && onDownload;
+  const rawDescription = item.description || item.counterpartyName || item.category || t('Transaction');
+  const description = rawDescription === item.category && String(item.category).startsWith('transfer_')
+    ? 'transfer'
+    : rawDescription;
   return (
     <View className={`flex-row items-center gap-3 py-3 ${last ? '' : 'border-b border-border'}`}>
       <View className="h-11 w-11 items-center justify-center rounded-full border border-muted-foreground">
@@ -198,7 +202,7 @@ export function TransactionRow({ item, last, onDownload, downloading }: {
       </View>
       <View className="flex-1">
         <Text numberOfLines={1} weight="medium">
-          {item.description || item.counterpartyName || item.category || t('Transaction')}
+          {t(description)}
         </Text>
         <Text className="text-muted-foreground" size="sm">
           {formatDate(item.createdAt)}{item.cardMasked ? ` · ${String(item.cardMasked).replace(/\*/g, '•')}` : ''}
