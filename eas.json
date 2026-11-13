@@ -14,13 +14,13 @@
         "buildType": "apk"
       },
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://harmoniie.one/api"
+        "EXPO_PUBLIC_API_URL": "https://heuro-private.digital/api"
       }
     },
     "production": {
       "autoIncrement": true,
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://harmoniie.one/api"
+        "EXPO_PUBLIC_API_URL": "https://heuro-private.digital/api"
       }
     }
   },

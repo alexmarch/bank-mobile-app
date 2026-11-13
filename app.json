@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "BankDash",
+    "name": "HeuroBank",
     "slug": "customer-mobile",
     "scheme": "bankdash",
     "version": "1.0.0",
@@ -39,7 +39,7 @@
       [
         "expo-local-authentication",
         {
-          "faceIDPermission": "Allow BankDash to use Face ID to securely sign you in."
+          "faceIDPermission": "Allow HeuroBank to use Face ID to securely sign you in."
         }
       ],
       "expo-localization",
